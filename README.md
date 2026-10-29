@@ -28,6 +28,10 @@ The mosaic detector runs on the NVIDIA GPU. The log should say `Detector model o
 
 `run.bat` uses a virtual environment next to this folder when that environment is there. Otherwise it uses Python on the PATH. Finished videos go to `Output`. If a public weight file is missing, Start downloads it into `models\`. Place the LoRA there as `lora.safetensors`. Open **Models** if a path is wrong.
 
+## Run it on Google Colab
+
+Open [`MosaicDiff_Colab.ipynb`](MosaicDiff_Colab.ipynb) in Colab and select an NVIDIA GPU runtime. The notebook never mounts Google Drive: videos go in `/input` and results go in `/output`. It logs into Hugging Face when needed and downloads all six model files, including configurable detector and LoRA repositories, then calls the same pipeline as the Windows app. A high-memory GPU is recommended because MiniMax H3 is memory-intensive.
+
 Install `onnxruntime-gpu`, not the plain `onnxruntime` package. The plain package only runs the detector on the CPU, and the two packages conflict. If the CPU package is already installed:
 
 ```
