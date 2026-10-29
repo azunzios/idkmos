@@ -372,7 +372,7 @@ def _rtx_node(job: dict):
 
 
 def _rtx_fit(job: dict, images, gen_w: int, gen_h: int, crop_w: int, crop_h: int):
-    """Upscale the H3 frames with RTX Video Super Resolution, then fit the crop."""
+    """Upscale the H3 frames with RTX VSR when available, then fit the crop."""
     import comfy.utils
 
     cover = max(crop_w / gen_w, crop_h / gen_h, 2.0)
@@ -382,12 +382,22 @@ def _rtx_fit(job: dict, images, gen_w: int, gen_h: int, crop_w: int, crop_h: int
         flush=True,
     )
     _free_other_models()
-    module = _rtx_node(job)
-    upscaled = module.RTXVideoSuperResolution.execute(
-        images,
-        {"resize_type": module.UpscaleType.SCALE_BY, "scale": scale, "width": 0, "height": 0},
-        "ULTRA",
-    )[0]
+    try:
+        module = _rtx_node(job)
+        import nvvfx
+    except ImportError:
+        print("RTX Video Super Resolution is unavailable; using standard resize", flush=True)
+        upscaled = images
+    else:
+        try:
+            upscaled = module.RTXVideoSuperResolution.execute(
+                images,
+                {"resize_type": module.UpscaleType.SCALE_BY, "scale": scale, "width": 0, "height": 0},
+                "ULTRA",
+            )[0]
+        except nvvfx.NvVFXError as exc:
+            print(f"RTX Video Super Resolution is unavailable ({exc}); using standard resize", flush=True)
+            upscaled = images
     fitted = comfy.utils.common_upscale(
         upscaled.movedim(-1, 1),
         crop_w,
